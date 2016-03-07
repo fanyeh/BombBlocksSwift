@@ -17,6 +17,7 @@
 		4C184E4F1C75726400ED6116 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4C184E4D1C75726400ED6116 /* LaunchScreen.storyboard */; };
 		4C184E5A1C75726400ED6116 /* BombBlocksSwiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C184E591C75726400ED6116 /* BombBlocksSwiftTests.swift */; };
 		4C184E651C75726400ED6116 /* BombBlocksSwiftUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C184E641C75726400ED6116 /* BombBlocksSwiftUITests.swift */; };
+		4C5C44E41C8D21A200A90403 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C5C44E31C8D21A200A90403 /* Default-568h@2x.png */; };
 		4C7F05191C7AFEA60029FEA7 /* BoardNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C7F05181C7AFEA60029FEA7 /* BoardNode.swift */; };
 		4CB93EE01C7C8FBE00D18E22 /* ButtonNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB93EDF1C7C8FBE00D18E22 /* ButtonNode.swift */; };
 		4CC56B811C7F0483001771D4 /* particle.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CC56B801C7F0483001771D4 /* particle.png */; };
@@ -61,6 +62,7 @@
 		4C184E601C75726400ED6116 /* BombBlocksSwiftUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BombBlocksSwiftUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C184E641C75726400ED6116 /* BombBlocksSwiftUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BombBlocksSwiftUITests.swift; sourceTree = "<group>"; };
 		4C184E661C75726400ED6116 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4C5C44E31C8D21A200A90403 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		4C7F05181C7AFEA60029FEA7 /* BoardNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoardNode.swift; sourceTree = "<group>"; };
 		4CB93EDF1C7C8FBE00D18E22 /* ButtonNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ButtonNode.swift; sourceTree = "<group>"; };
 		4CC56B801C7F0483001771D4 /* particle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = particle.png; path = ../particle.png; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 		4C184E341C75726400ED6116 = {
 			isa = PBXGroup;
 			children = (
+				4C5C44E31C8D21A200A90403 /* Default-568h@2x.png */,
 				4C184E3F1C75726400ED6116 /* BombBlocksSwift */,
 				4C184E581C75726400ED6116 /* BombBlocksSwiftTests */,
 				4C184E631C75726400ED6116 /* BombBlocksSwiftUITests */,
@@ -265,6 +268,7 @@
 			files = (
 				4CD8F3DC1C86A7DB008ECC67 /* SparkParticle.sks in Resources */,
 				4C184E431C75726400ED6116 /* GameScene.sks in Resources */,
+				4C5C44E41C8D21A200A90403 /* Default-568h@2x.png in Resources */,
 				4C184E4F1C75726400ED6116 /* LaunchScreen.storyboard in Resources */,
 				4C184E4C1C75726400ED6116 /* Assets.xcassets in Resources */,
 				4C184E4A1C75726400ED6116 /* Main.storyboard in Resources */,
