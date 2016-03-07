@@ -5,8 +5,6 @@
 //  Created by JackYeh on 2016/2/22.
 //  Copyright © 2016年 MarriageKiller. All rights reserved.
 //
-
-//import Foundation
 import SpriteKit
 
 // MARK: BoardDelegate
@@ -115,7 +113,7 @@ class BoardNode:SKShapeNode {
     
     func setupBackgroundNode() {
         for nodeCoordinate in blockNodeCoordinates {
-            let backgroundBlock = Block(blockRect: nodeCoordinate, blockType: Block.MainType.Background)
+            let backgroundBlock = Block(blockRect: nodeCoordinate, blockType: Block.MainType.Background , blockSubType: nil)
             self.addChild(backgroundBlock)
             backgroundNodeContainer.append(backgroundBlock)
         }
@@ -301,26 +299,23 @@ class BoardNode:SKShapeNode {
 
         if (emptyNodeIndexContainer.count != 0) {
         
-            /* Create random block node */
-            let randomIndex = Int(arc4random_uniform(UInt32(emptyNodeIndexContainer.count)))
-            let emptyNodeIndex = emptyNodeIndexContainer[randomIndex]
-            let nextNode = delegate?.getNextNodeBlock()
+            /* Get random position for place incoming block */
+            let emptyNodeIndex = emptyNodeIndexContainer[Int(arc4random_uniform(UInt32(emptyNodeIndexContainer.count)))]
             
+            /* Get next block info */
+            let nextNode = delegate?.getNextNodeBlock()
             var blockNode : Block!
-
             if (nextNode?.type == Block.MainType.Bomb) {
                 blockNode = Block(blockRect: blockNodeCoordinates[emptyNodeIndex], blockType: Block.MainType.Bomb , blockSubType:(nextNode?.subType)!)
                 blockNode.updateBombCounter((nextNode?.bombCounter)! + 1)
                 nextNode?.removeAllChildren()
             } else {
-                blockNode = Block(blockRect: blockNodeCoordinates[emptyNodeIndex], blockSubType: (nextNode?.subType)!)
+                blockNode = Block(blockRect: blockNodeCoordinates[emptyNodeIndex], blockType: Block.MainType.Normal , blockSubType: (nextNode?.subType)!)
             }
-        
-            /* Add new block to board */
             self.addChild(blockNode);
-            
             blockNodeContainer[emptyNodeIndex] = blockNode
             
+            /* Turn off userInteraction until poping ends */
             delegate?.setUserInteraction(false)
             
             /* Animation when adding child */
@@ -372,7 +367,6 @@ class BoardNode:SKShapeNode {
                 finalRemoveArray.append(colCancelArray)
             }
         
-            
             /* Row remove Check */
             startIndex = index * 4
             endIndex = startIndex + 3
@@ -382,33 +376,23 @@ class BoardNode:SKShapeNode {
             }
         }
         
-        /* Square remove check */
-//        for index in 0...10 {
-//            if (index != 3 && index != 7) {
-//                let squareCancelArray = executeBlockRemovalSquare(index)
-//                if (squareCancelArray.count > 0) {
-//                    finalRemoveArray.append(squareCancelArray)
-//                }
-//            }
-//        }
-        
+        /* Stop cancellation if no blocks to be removed */
         if finalRemoveArray.count == 0 {
-            
             completion()
-            
-        } else {
-            
-            /* Apply expand animation to new cancel blocks */
-            for removeBlocks in finalRemoveArray {
-                if let finalIndex = blockIndex(removeBlocks[1]) {
-                    explodeNeighbour(finalIndex)
-                }
+            return
+        }
+        
+        /* Apply expand animation to new cancel blocks */
+        for removeBlocks in finalRemoveArray {
+            if let finalIndex = blockIndex(removeBlocks[1]) {
+                explodeNeighbour(finalIndex)
             }
-            
-            let delay = dispatch_time( DISPATCH_TIME_NOW, Int64(Double(0.2) * Double(NSEC_PER_SEC)) )
-            dispatch_after(delay, dispatch_get_main_queue()) {
-                completion()
-            }
+        }
+        
+        /* Trigger timer for completion block */
+        let delay = dispatch_time( DISPATCH_TIME_NOW, Int64(Double(0.2) * Double(NSEC_PER_SEC)) )
+        dispatch_after(delay, dispatch_get_main_queue()) {
+            completion()
         }
     }
     
@@ -461,30 +445,10 @@ class BoardNode:SKShapeNode {
         
         block.extendBlockAnimation({() -> () in
             
-            self.cancelBlockAnimation([block], explodeColor: block.color)
-            self.removeBlocksFromBoard([block])
+            self.cancelBlockAnimation(block, explodeColor: block.color)
+            self.removeBlocksFromBoard(block)
             
         }, direction: direction)
-    }
-
-    func removeOriginalCancelBlocksFromContainer(finalRemoveArray:[[Block]]) {
-        
-        /* Get original unique blocks to be removed */
-        var uniqueRemoveBlocks = [Block]()
-        
-        for removeBlocks in finalRemoveArray {
-            uniqueRemoveBlocks += removeBlocks
-        }
-        
-        uniqueRemoveBlocks = Array(Set(uniqueRemoveBlocks))
-
-        /* Remove original cancelBlocks from container */
-        for blockNode in uniqueRemoveBlocks {
-            
-            if let removeIndex = blockIndex(blockNode) {
-                blockNodeContainer[removeIndex] = nil
-            }
-        }
     }
     
     func executeBlockRemoval(startIndex:Int , endIndex:Int , neighbourOffset:Int)->[Block] {
@@ -498,27 +462,6 @@ class BoardNode:SKShapeNode {
             
             if (confirmedBlocksToCancelCount > 2) {
                 return confirmedBlocksToCancel
-            } else {
-                return []
-            }
-
-        }
-        return []
-    }
-    
-    func executeBlockRemovalSquare(startIndex:Int)->[Block] {
-        
-        if let blockNode = blockNodeContainer[startIndex] {
-            if let rightBlockNode = blockTypeCheck(startIndex + 1,blockSubType: blockNode.subType) {
-                if let bottomBlockNode = blockTypeCheck(startIndex + 4,blockSubType: blockNode.subType) {
-                    if let bottomRightBlockNode = blockTypeCheck(startIndex + 5,blockSubType: blockNode.subType) {
-                        
-                        return [blockNode,rightBlockNode,bottomBlockNode,bottomRightBlockNode]
-
-                    }
-                    return []
-                }
-                return []
             }
             return []
         }
@@ -570,17 +513,17 @@ class BoardNode:SKShapeNode {
         if cancelBlocks.count > 2 {
             var frequency: [Block.SubType:Int] = [:]
             for frequencyNode in cancelBlocks {
-                // set frequency based on block type occurrence
+                /* Set frequency based on block type occurrence */
                 frequency[frequencyNode.subType!] = (frequency[frequencyNode.subType!] ?? 0) + 1
                 
-                // If there are 3 blocks on same row or column with same same type
+                /* If there are 3 blocks on same row or column with same same type */
                 if (frequency[frequencyNode.subType!] == 3 && frequencyNode.subType! != Block.SubType.Black) {
                     
-                    // Check if blocks are consecutive
+                    /* Check if blocks are consecutive */
                     if (cancelBlocks[2].subType != frequencyNode.subType! || cancelBlocks[1].subType != frequencyNode.subType!) {
                         return []
                     }
-                    // Filter out blocks to be cancelled
+                    /* Filter out blocks to be cancelled */
                     return cancelBlocks.filter { (node) -> Bool in
                         node.subType == frequencyNode.subType!
                     }
@@ -591,55 +534,50 @@ class BoardNode:SKShapeNode {
         return []
     }
     
-    func cancelBlockAnimation(blocksToCancel:[Block] , explodeColor:UIColor) {
-        for blockNode in blocksToCancel {
-            let position = blockNode.frame.origin
-            if let particles = SKEmitterNode(fileNamed: "ExplodeParticle.sks") {
-                particles.position = CGPointMake(position.x + CGFloat(blockSize/2) , position.y + CGFloat(blockSize/2))
-                particles.particleColor = explodeColor
-                particles.particleColorBlendFactor = 1.0;
-                particles.particleColorSequence = nil;
-                particles.zPosition = 6
-                self.addChild(particles)
-            }
-            delegate?.changeScore(5)
+    func cancelBlockAnimation(blockToCancel:Block , explodeColor:UIColor) {
+       
+        let position = blockToCancel.frame.origin
+        if let particles = SKEmitterNode(fileNamed: "ExplodeParticle.sks") {
+            particles.position = CGPointMake(position.x + CGFloat(blockSize/2) , position.y + CGFloat(blockSize/2))
+            particles.particleColor = explodeColor
+            particles.particleColorBlendFactor = 1.0;
+            particles.particleColorSequence = nil;
+            particles.zPosition = 6
+            self.addChild(particles)
         }
+        delegate?.changeScore(5)
     }
     
-    func removeBlocksFromBoard(cancelBlocks:[Block]) {
-        for blockNode in cancelBlocks {
-            blockNode.removeFromParent()
-        }
+    func removeBlocksFromBoard(cancelBlock:Block) {
+            cancelBlock.removeFromParent()
     }
     
     func blockIndex(blockNode:Block)->Int? {
         if let index = blockNodeContainer.indexOf( {$0 == blockNode}) {
             return index
-        } else {
-            return nil
         }
+        return nil
     }
     
     func checkBombCounter() {
         
         for block in blockNodeContainer {
             
-            if (block?.type == Block.MainType.Bomb) {
+            if (block?.type == Block.MainType.Bomb && block?.bombCounter > 0) {
                 
-                if (block?.bombCounter > 0) {
-                    block?.decreaseBombCounter()
-                    if ( block?.bombCounter == 0) {
-                        block?.triggerBomb({ () -> () in
+                block?.decreaseBombCounter()
+                
+                if ( block?.bombCounter == 0) {
+                    
+                    block?.triggerBomb({ () -> () in
+                        
+                        self.cancelBlockAnimation(block!, explodeColor: (block?.color)!)
+                        
+                        if let index = self.blockIndex(block!) {
                             
-                            self.cancelBlockAnimation([block!], explodeColor: (block?.color)!)
-                            
-                            if let index = self.blockIndex(block!) {
-                                
-                                self.backgroundNodeContainer[index].sealBackground()
-                            }
-                            
-                        })
-                    }
+                            self.backgroundNodeContainer[index].sealBackground()
+                        }
+                    })
                 }
             }
         }

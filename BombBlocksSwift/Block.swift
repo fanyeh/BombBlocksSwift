@@ -34,71 +34,37 @@ class Block:SKSpriteNode {
     var counterLabel : SKLabelNode?
     var toBeCancelled = false
     
-    init(blockRect:CGRect , blockType:MainType) {
+    init(blockRect:CGRect , blockType:MainType , blockSubType:SubType?) {
         
         super.init(texture: nil, color: UIColor.clearColor(), size: blockRect.size)
-        setBlockType(blockType)
-        position = CGPointMake( blockRect.origin.x + blockRect.size.width/2 , blockRect.origin.y + blockRect.size.width/2 )
-    }
-    
-    /* Set bomb from next block node */
-    init(blockRect:CGRect , blockType:MainType ,  blockSubType:SubType) {
-        
-        super.init(texture: nil, color: UIColor.clearColor(), size: blockRect.size)
-        self.type = blockType
-        self.subType = blockSubType
-        self.texture = TextureStore.sharedInstance.bombTextures[self.subType.rawValue]
-        self.zPosition = 3
-        isAvailable = false
-        addBombCounter()
-        position = CGPointMake( blockRect.origin.x + blockRect.size.width/2 , blockRect.origin.y + blockRect.size.width/2 )
-    }
-    
-    /* Set normal block from next block node */
-    init(blockRect:CGRect , blockSubType:SubType) {
-        
-        super.init(texture: nil, color: UIColor.clearColor(), size: blockRect.size)
-        self.type = MainType.Normal
-        self.subType = blockSubType
-        self.color = TextureStore.sharedInstance.blockColor[self.subType.rawValue]
-        self.texture = TextureStore.sharedInstance.blockTextures[self.subType.rawValue]
-        self.zPosition = 3
+        setBlockType(blockType , blockSubType:blockSubType)
         position = CGPointMake( blockRect.origin.x + blockRect.size.width/2 , blockRect.origin.y + blockRect.size.width/2 )
     }
     
     init(nextNodeRect: CGRect, viewSize: CGSize) {
         
         super.init(texture: nil, color: UIColor.clearColor(), size: nextNodeRect.size)
-        setBlockType(Block.MainType.Next)
+        setBlockType(Block.MainType.Next , blockSubType: nil)
         position =  CGPointMake( viewSize.width , viewSize.height)
         
         /* Next node content */
         let nextBlockSize :CGFloat = nextNodeRect.size.width-25
-        nextBlock = Block(blockRect: CGRectMake(-(nextBlockSize)/2,-(nextBlockSize)/2,nextBlockSize,nextBlockSize), blockType: Block.MainType.Normal)
+        nextBlock = Block(blockRect: CGRectMake(-(nextBlockSize)/2,-(nextBlockSize)/2,nextBlockSize,nextBlockSize), blockType: Block.MainType.Normal , blockSubType:nil)
         addChild(nextBlock!)
         nextBlock!.PopBlockAnimation({})
     }
     
     func addBombCounter() {
         
-//        let position = CGPointMake(0, self.size.width/2 + 1)
-//        if let particles = SKEmitterNode(fileNamed: "SparkParticle.sks") {
-//            particles.position = position
-//            particles.particleColor = self.color
-//            particles.particleColorBlendFactor = 1.0;
-//            particles.particleColorSequence = nil;
-//            particles.zPosition = 3
-//            self.addChild(particles)
-//        }
-        
+        /* Preload font so it doesnt cause lag with SKLabelNode */
+        let labelFont = UIFont(name: "AmericanTypewriter-Bold", size: self.size.width/2)
         bombCounter = 10 + Int(arc4random_uniform(UInt32(10)))
-        
-        counterLabel = SKLabelNode(fontNamed:"AmericanTypewriter-bold")
-        counterLabel?.text = String(bombCounter);
-        counterLabel?.fontSize = 34 * UIScreen.mainScreen().bounds.width / 320
+        counterLabel =  SKLabelNode(fontNamed: labelFont?.fontName)
+        counterLabel?.fontSize = self.size.width/2
+        counterLabel?.text = String(bombCounter)
         counterLabel?.verticalAlignmentMode = SKLabelVerticalAlignmentMode.Center
         counterLabel?.fontColor = UIColor.blackColor()
-        counterLabel?.position = CGPointMake(0, 0)
+        counterLabel?.position = CGPointMake(0,0)
         counterLabel?.zPosition = 5
         self.addChild(counterLabel!)
     }
@@ -107,19 +73,22 @@ class Block:SKSpriteNode {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setBlockType(blockType:MainType) {
+    func setBlockType(blockType:MainType , blockSubType:SubType?) {
         
         self.type = blockType
+        var randomBlockType = Int(arc4random_uniform(UInt32(4)))
+        
+        if blockSubType != nil {
+            randomBlockType = (blockSubType?.rawValue)!
+        }
 
         switch blockType {
         case MainType.Normal :
-            let randomBlockType = Int(arc4random_uniform(UInt32(4)))
             self.subType = SubType(rawValue: randomBlockType)
             self.texture = TextureStore.sharedInstance.blockTextures[randomBlockType]
             self.zPosition = 3
             break
         case MainType.Bomb :
-            let randomBlockType = Int(arc4random_uniform(UInt32(4)))
             self.subType = SubType(rawValue: randomBlockType)
             self.texture = TextureStore.sharedInstance.bombTextures[randomBlockType]
             self.zPosition = 3
@@ -200,7 +169,6 @@ class Block:SKSpriteNode {
     }
     
     func triggerBomb(completion:()->()) {
-        
         let scaleUpAction = SKAction.scaleBy(1.5, duration: 0.2)
         let scaleBackAction = SKAction.scaleTo(1, duration: 0.2)
         let actionSequence = SKAction.sequence([scaleUpAction,scaleBackAction,scaleUpAction])
@@ -213,21 +181,16 @@ class Block:SKSpriteNode {
     }
     
     func sealBackground() {
-
         self.runAction(SKAction.scaleTo(0, duration: 0.5))
     }
     
     func decreaseBombCounter() {
-        
         bombCounter--
         counterLabel?.text = String(bombCounter)
-        
     }
     
     func updateBombCounter(counter:Int) {
         bombCounter = counter
         counterLabel?.text = String(bombCounter)
-
     }
-    
 }

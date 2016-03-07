@@ -5,8 +5,6 @@
 //  Created by JackYeh on 2016/3/4.
 //  Copyright © 2016年 MarriageKiller. All rights reserved.
 //
-
-import Foundation
 import SpriteKit
 
 class TextureStore {
@@ -30,17 +28,13 @@ class TextureStore {
     }
     
     func createStore(size:CGSize) {
-        
-        // Game
+        /* Create Normal block textures */
         for colorIndex in 0...blockColor.count-1 {
-
             blockTextures.append(createBlockTexture(size, color: blockColor[colorIndex],subImage: nil))
-
         }
         
-        // Bomb
+        /* Create Bomb textures */
         for colorIndex in 0...3 {
-            
             bombTextures.append(createBombTexture(size, color: blockColor[colorIndex]))
         }
     }
@@ -55,7 +49,6 @@ class TextureStore {
         if let image = subImage {
             image.drawInRect(CGRectMake(0, 0, size.width, size.height))
         }
-        
         let baseImage = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
         return SKTexture(image: baseImage)
@@ -76,6 +69,5 @@ class TextureStore {
         UIGraphicsEndImageContext();
        
         return createBlockTexture(size, color:color , subImage: bombImage)
-
-    }    
+    }
 }

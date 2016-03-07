@@ -112,11 +112,11 @@ class GameScene: SKScene , ButtonActionDelegate  , BoardDelegate {
         
         if (Int(arc4random_uniform(UInt32(16))) == 1) {
             
-            nextNode.nextBlock?.setBlockType(Block.MainType.Bomb)
+            nextNode.nextBlock?.setBlockType(Block.MainType.Bomb , blockSubType: nil)
             
         } else {
             
-            nextNode.nextBlock?.setBlockType(Block.MainType.Normal)
+            nextNode.nextBlock?.setBlockType(Block.MainType.Normal , blockSubType: nil)
         }
 
         
