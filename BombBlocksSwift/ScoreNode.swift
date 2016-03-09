@@ -10,11 +10,15 @@ import SpriteKit
 
 class ScoreNode: SKShapeNode {
     
-    var score : Int
+    var score : Int = 0
     var buttonLabel : SKLabelNode
     
-    init(nodeRect: CGRect, cornerRadius: CGFloat , viewSize:CGSize , initialScore:Int) {
-        self.score = initialScore
+    /**
+     Initializer for Score label
+     - Parameter labelRect : Rect of score label
+     - Parameter labelPosition : Position of score label
+    */
+    init(labelRect: CGRect, labelPosition:CGPoint ) {
 
         buttonLabel = SKLabelNode(fontNamed:"AmericanTypewriter-Bold")
         buttonLabel.text = String(score);
@@ -23,17 +27,21 @@ class ScoreNode: SKShapeNode {
         buttonLabel.fontColor = UIColor(white: 1, alpha: 0.8)
         
         super.init()
-        self.path = UIBezierPath(roundedRect: nodeRect, cornerRadius: cornerRadius).CGPath
-        self.position = CGPointMake( viewSize.width, viewSize.height + 80)
-        self.fillColor = UIColor.clearColor()
-        self.strokeColor = UIColor.clearColor()
-        self.addChild(buttonLabel)
+        path = UIBezierPath(rect: labelRect).CGPath
+        position = CGPointMake( labelPosition.x, labelPosition.y + 80)
+        fillColor = UIColor.clearColor()
+        strokeColor = UIColor.clearColor()
+        addChild(buttonLabel)
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    /**
+     Update game score and runs a score change action
+     - Parameter addScore : Score to be added to current score
+     */
     func changeScore(addScore:Double) {
         
         let currentScore = score
@@ -47,6 +55,9 @@ class ScoreNode: SKShapeNode {
         self.runAction(changeScore)
     }
     
+    /**
+     Reset game score
+    */
     func resetScore() {
         score = 0
         buttonLabel.text = String(score)

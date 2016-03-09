@@ -29,11 +29,11 @@ class GameScene: SKScene , ButtonActionDelegate  , BoardDelegate {
         
         /* Add next node */
         let nextNodeSize = UIScreen.mainScreen().bounds.width * CGFloat(0.25)
-        nextNode = Block(nextNodeRect: CGRectMake(0,0,nextNodeSize,nextNodeSize), viewSize: CGSizeMake(self.frame.size.width/2 , self.frame.size.height/2 - boardNode.boardSize/2 - 100))
+        nextNode = Block(nextBlockRect: CGRectMake(0,0,nextNodeSize,nextNodeSize), blockPosition: CGPointMake(self.frame.size.width/2 , self.frame.size.height/2 - boardNode.boardSize/2 - 100))
         addChild(nextNode)
         
         /* Set Score label */
-        scoreNode = ScoreNode(nodeRect: CGRectMake(0, 0, 100, 50), cornerRadius: 10, viewSize: CGSizeMake(self.frame.size.width/2 , self.frame.size.height/2 + boardNode.boardSize/2), initialScore: 0)
+        scoreNode = ScoreNode(labelRect: CGRectMake(0, 0, 100, 50), labelPosition: CGPointMake(self.frame.size.width/2, self.frame.size.height/2 + boardNode.boardSize/2))
         addChild(scoreNode)
         
         /* Create random block node */
@@ -42,14 +42,14 @@ class GameScene: SKScene , ButtonActionDelegate  , BoardDelegate {
         /* Game over node */
         gameOverNode = SKSpriteNode(color: UIColor.blackColor(), size: self.frame.size)
         gameOverNode.alpha = 0
-        gameOverNode.zPosition = 6
+        gameOverNode.zPosition = 7
         gameOverNode.position = CGPointMake(self.frame.size.width/2 , self.frame.size.height/2)
         addChild(gameOverNode)
         
         /* Add reset buttons to Scene */
         resetButtonNode = ButtonNode(rect: CGRectMake(0,0,60,60), viewRect:self.frame , buttonText:"R")
         resetButtonNode.delegate = self
-        resetButtonNode.zPosition = 7
+        resetButtonNode.zPosition = 8
         resetButtonNode.alpha = 0
         addChild(resetButtonNode!)
 
@@ -60,7 +60,7 @@ class GameScene: SKScene , ButtonActionDelegate  , BoardDelegate {
         gameOverLabel.verticalAlignmentMode = SKLabelVerticalAlignmentMode.Baseline
         gameOverLabel.position = CGPointMake(self.frame.size.width/2 , self.frame.size.height/2)
         gameOverLabel.fontColor = UIColor.whiteColor()
-        gameOverLabel.zPosition = 8
+        gameOverLabel.zPosition = 9
         gameOverLabel.alpha = 0
         addChild(gameOverLabel)
         
@@ -90,8 +90,6 @@ class GameScene: SKScene , ButtonActionDelegate  , BoardDelegate {
     func respondToSwipeGesture(gesture: UIGestureRecognizer) {
         
         if let swipeGesture = gesture as? UISwipeGestureRecognizer {
-
-            //decideMoveDirection(swipeGesture.direction)
             boardNode.swipeDirection = swipeGesture.direction
             boardNode.moveBlocks()
         }
@@ -109,6 +107,7 @@ class GameScene: SKScene , ButtonActionDelegate  , BoardDelegate {
     
     func popNextNode() {
         
+        nextNode.nextBlock?.removeAllChildren()
         
         if (Int(arc4random_uniform(UInt32(16))) == 1) {
             

@@ -13,16 +13,16 @@ class TextureStore {
     
     var blockTextures = [SKTexture]()
     var bombTextures = [SKTexture]()
-
+    var lockTexture :SKTexture?    
     var blockColor = [
-        UIColor(red: 99/255, green: 173/255, blue: 244/255, alpha: 1) ,
-        UIColor(red: 242/255, green: 110/255, blue: 134/255, alpha: 1),
-        UIColor(red: 66/255, green: 168/255, blue: 129/255, alpha: 1),
-        UIColor(red: 217/255, green: 186/255, blue: 95/255, alpha: 1),
+        UIColor(red: 0/255, green: 146/255, blue: 199/255, alpha: 1) ,
+        UIColor(red: 242/255, green: 75/255, blue: 106/255, alpha: 1),
+        UIColor(red: 242/255, green: 185/255, blue: 80/255, alpha: 1),
+        UIColor(red: 65/255, green: 167/255, blue: 116/255, alpha: 1),
         UIColor.blackColor(),
         UIColor(white: 0.15, alpha: 1)
     ]
-
+    
     private init() {
 
     }
@@ -37,6 +37,8 @@ class TextureStore {
         for colorIndex in 0...3 {
             bombTextures.append(createBombTexture(size, color: blockColor[colorIndex]))
         }
+        
+        lockTexture = createLockTexture(size)
     }
     
     private func createBlockTexture(size:CGSize , color:UIColor , subImage:UIImage?)->SKTexture {
@@ -60,8 +62,8 @@ class TextureStore {
         let bombOvalSize : CGFloat = size.width - bombSizeModifer
         
         UIGraphicsBeginImageContext(size);
-        UIColor(white: 1, alpha: 0.7).setFill()
-        let bombPath = UIBezierPath(ovalInRect: CGRectMake(bombSizeModifer/2, bombSizeModifer/2, bombOvalSize, bombOvalSize))
+        UIColor(white: 1, alpha: 1).setFill()
+        let bombPath = UIBezierPath(ovalInRect: CGRectMake(bombSizeModifer/2, bombSizeModifer/2 + 2, bombOvalSize, bombOvalSize))
         let rectPath = UIBezierPath(roundedRect: CGRectMake((size.width - size.width/5)/2, bombSizeModifer/4, size.width/5, CGFloat(25 * Int(UIScreen.mainScreen().bounds.width / 320))), cornerRadius: size.width/5/4)
         bombPath.appendPath(rectPath)
         bombPath.fill()
@@ -70,4 +72,70 @@ class TextureStore {
        
         return createBlockTexture(size, color:color , subImage: bombImage)
     }
+    
+    func createLockTexture(size:CGSize)->SKTexture {
+        
+        /* Sizes */
+        let sizeModifier : CGFloat = size.width/1.7
+        let lockHeight = size.width - sizeModifier
+        let lockWidth  = lockHeight * 1.3
+        let ringRadius = lockWidth/2
+        let holeRadius : CGFloat = ringRadius - 8
+        let holeWidth = holeRadius * 0.6
+        let yOffset :CGFloat = -4
+
+        /* Hole image */
+        UIGraphicsBeginImageContext(size);
+        UIColor.blackColor().setFill()
+        
+        let holePath = UIBezierPath(arcCenter: CGPointMake(size.width/2, size.width/2 + yOffset), radius: holeRadius, startAngle: 0, endAngle: CGFloat(M_PI), clockwise: false)
+        holePath.appendPath(UIBezierPath(rect: CGRectMake((size.width - holeWidth)/2, (size.width+holeWidth)/2 , holeWidth, holeWidth)))
+        holePath.appendPath(UIBezierPath(ovalInRect: CGRectMake( size.width/2 - holeRadius * 1.25/2 ,size.height/2 + (holeRadius * 1.25)/2, holeRadius * 1.25, holeRadius * 1.25)))
+        holePath.fill()
+        let holeImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        
+        /* Lock image */
+        UIGraphicsBeginImageContext(size);
+        UIColor.whiteColor().setFill()
+        let lockPath = UIBezierPath(arcCenter: CGPointMake((size.width - lockWidth)/2 + lockWidth/2 , size.width - lockWidth + yOffset), radius: ringRadius, startAngle: 0, endAngle: CGFloat(M_PI), clockwise: false)
+        lockPath.appendPath( UIBezierPath(rect: CGRectMake( (size.width - lockWidth)/2, size.width - lockWidth + yOffset, lockWidth, lockHeight)))
+        lockPath.fill()
+        holeImage.drawInRect(CGRectMake(0, -3, size.width, size.height))
+        let image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        
+        return SKTexture(image: image)
+    }
+    
+    func createKeyTexture(size:CGSize)->SKTexture {
+
+        /* Sizes */
+        let lockHeight : CGFloat = size.width/8
+        let lockWidth  : CGFloat = size.width/2.4
+        let radius : CGFloat = size.width/4.5
+        let ringRadius = radius - 8
+        
+        /* Ring image */
+        UIGraphicsBeginImageContext(size);
+        UIColor.blackColor().setFill()
+        let ringPath = UIBezierPath(ovalInRect: CGRectMake(8 + radius - ringRadius , size.height/2 - ringRadius, ringRadius * 2, ringRadius * 2))
+        ringPath.fill()
+        let ringImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        
+        /* Key image */
+        UIGraphicsBeginImageContext(size);
+        UIColor.whiteColor().setFill()
+        let finalPath = UIBezierPath(ovalInRect: CGRectMake(8 , size.height/2 - radius, radius * 2, radius * 2))
+        finalPath.appendPath(UIBezierPath(rect: CGRectMake(4 + radius * 2, (size.height - lockHeight)/2, lockWidth, lockHeight)))
+        finalPath.appendPath(UIBezierPath(rect: CGRectMake(4 + radius * 2 + lockWidth - 13 , (size.height - lockHeight)/2 + 8, lockHeight - 2 , 10)))
+        finalPath.fill()
+        ringImage.drawInRect(CGRectMake(0, 0, size.width, size.height))
+        let keyImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        
+        return SKTexture(image: keyImage)
+    }
+
 }

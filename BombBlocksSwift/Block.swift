@@ -10,30 +10,61 @@ import SpriteKit
 
 class Block:SKSpriteNode {
     
+    /**
+     Define type of block.
+     - Normal       : Normal block.
+     - Bomb         : Block with bomb.
+     - Background   : Background Block.
+     - Next         : Hint for incoming block.
+     */
     enum MainType :Int {
         case Normal = 0 , Bomb = 1, Background = 2, Next = 3
     }
     
+    /**
+     Define base color of block.
+     - Blue
+     - Red
+     - Yellow
+     - Green
+     - Black
+     - AlphaWhite
+     */
     enum SubType :Int {
         case Blue = 0 ,Red = 1,Yellow = 2, Green = 3 ,Black = 4 , AlphaWhite = 5
     }
     
-    enum ExpandType {
-        case Vertical , Horizontal , Square
-    }
-    
+    /**
+     Define animation direction durning block cancellation.
+     - Down
+     - Left
+     - Right
+     - Up
+     */
     enum AnimationDirection :Int {
-        case Down = 0 , Left = 1 , Right = 2, Up = 3
+        case Down = 4 , Left = -1 , Right = 1, Up = -4
     }
 
     var type :MainType!
     var subType :SubType!
-    var bombCounter = 0
     var nextBlock :Block?
     var isAvailable = true
     var counterLabel : SKLabelNode?
     var toBeCancelled = false
+    var bombCounter : Int = 0 {
+        didSet {
+            if bombCounter > 0 {
+                counterLabel?.text = String(bombCounter)
+            }
+        }
+    }
     
+    /**
+     Initializer for block
+     - Parameter blockRect : CGRect of the block
+     - Parameter blockType : MainType of the block
+     - Parameter blockSubType : SubType of the block
+     */
     init(blockRect:CGRect , blockType:MainType , blockSubType:SubType?) {
         
         super.init(texture: nil, color: UIColor.clearColor(), size: blockRect.size)
@@ -41,41 +72,54 @@ class Block:SKSpriteNode {
         position = CGPointMake( blockRect.origin.x + blockRect.size.width/2 , blockRect.origin.y + blockRect.size.width/2 )
     }
     
-    init(nextNodeRect: CGRect, viewSize: CGSize) {
+    /**
+     Initializer for hint block
+     - Parameter nextBlockRect : CGRect of the hint block
+     - Parameter blockPosition : Position on screen for hint block
+     */
+    init(nextBlockRect: CGRect, blockPosition: CGPoint) {
         
-        super.init(texture: nil, color: UIColor.clearColor(), size: nextNodeRect.size)
+        super.init(texture: nil, color: UIColor.clearColor(), size: nextBlockRect.size)
         setBlockType(Block.MainType.Next , blockSubType: nil)
-        position =  CGPointMake( viewSize.width , viewSize.height)
+        position =  blockPosition
         
         /* Next node content */
-        let nextBlockSize :CGFloat = nextNodeRect.size.width-25
+        let nextBlockSize :CGFloat = nextBlockRect.size.width-25
         nextBlock = Block(blockRect: CGRectMake(-(nextBlockSize)/2,-(nextBlockSize)/2,nextBlockSize,nextBlockSize), blockType: Block.MainType.Normal , blockSubType:nil)
         addChild(nextBlock!)
         nextBlock!.PopBlockAnimation({})
     }
     
+    /**
+     Add bomb counter label to block and set the bomb counter randomly
+     */
     func addBombCounter() {
         
         /* Preload font so it doesnt cause lag with SKLabelNode */
         let labelFont = UIFont(name: "AmericanTypewriter-Bold", size: self.size.width/2)
-        bombCounter = 10 + Int(arc4random_uniform(UInt32(10)))
         counterLabel =  SKLabelNode(fontNamed: labelFont?.fontName)
         counterLabel?.fontSize = self.size.width/2
-        counterLabel?.text = String(bombCounter)
         counterLabel?.verticalAlignmentMode = SKLabelVerticalAlignmentMode.Center
+        counterLabel?.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.Center
         counterLabel?.fontColor = UIColor.blackColor()
-        counterLabel?.position = CGPointMake(0,0)
+        counterLabel?.position = CGPointMake(0,-2)
         counterLabel?.zPosition = 5
-        self.addChild(counterLabel!)
+        addChild(counterLabel!)
+        bombCounter = 5 + Int(arc4random_uniform(UInt32(10)))
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    /**
+     Setup texture and color for each type of block , if blockSubType is nil then randomly choose texture
+     - Parameter blockType : MainType of the block
+     - Parameter blockSubType : SubType of the block
+     */
     func setBlockType(blockType:MainType , blockSubType:SubType?) {
         
-        self.type = blockType
+        type = blockType
         var randomBlockType = Int(arc4random_uniform(UInt32(4)))
         
         if blockSubType != nil {
@@ -84,32 +128,35 @@ class Block:SKSpriteNode {
 
         switch blockType {
         case MainType.Normal :
-            self.subType = SubType(rawValue: randomBlockType)
-            self.texture = TextureStore.sharedInstance.blockTextures[randomBlockType]
-            self.zPosition = 3
+            subType = SubType(rawValue: randomBlockType)
+            texture = TextureStore.sharedInstance.blockTextures[randomBlockType]
+            zPosition = 3
             break
         case MainType.Bomb :
-            self.subType = SubType(rawValue: randomBlockType)
-            self.texture = TextureStore.sharedInstance.bombTextures[randomBlockType]
-            self.zPosition = 3
+            subType = SubType(rawValue: randomBlockType)
+            texture = TextureStore.sharedInstance.bombTextures[randomBlockType]
+            zPosition = 3
             isAvailable = false
             addBombCounter()
             break
         case MainType.Background :
-            self.subType = SubType.Black
-            self.texture = TextureStore.sharedInstance.blockTextures[4]
-            self.zPosition = 2
+            subType = SubType.Black
+            texture = TextureStore.sharedInstance.blockTextures[4]
+            zPosition = 2
             isAvailable = false
             break
         case MainType.Next :
-            self.subType = SubType.AlphaWhite
-            self.texture = TextureStore.sharedInstance.blockTextures[5]
-            self.zPosition = 1
+            subType = SubType.AlphaWhite
+            texture = TextureStore.sharedInstance.blockTextures[5]
+            zPosition = 1
             break
         }
         self.color = TextureStore.sharedInstance.blockColor [self.subType.rawValue]
     }
     
+    /**
+     SKAction when poping new block
+     */
     func PopBlockAnimation(gameOverBlock:()->()) {
         
         self.hidden = false
@@ -122,6 +169,9 @@ class Block:SKSpriteNode {
         })
     }
     
+    /**
+     SKAction when poping hint block
+     */
     func PopNextBlockAnimation() {
         
         self.hidden = false
@@ -131,13 +181,18 @@ class Block:SKSpriteNode {
         self.runAction(scaleDownAction)
     }
     
+    /**
+     SKAction during block cancellation
+     - Parameter completion : Closure to be executing after action completed
+     - Parameter direction : Direction to animate
+     */
     func extendBlockAnimation(completion:()->() , direction:AnimationDirection) {
         
         let size :CGFloat = 22
-        let actionDuration : NSTimeInterval = 0.2
+        let actionDuration : NSTimeInterval = 0.15
         let pathWidth : CGFloat = self.size.width/3
-        var pathNode : SKShapeNode!
         var action : SKAction!
+        var pathNode : SKShapeNode!
         
         switch direction {
             
@@ -159,15 +214,25 @@ class Block:SKSpriteNode {
             action = SKAction.moveByX(-size, y: 0, duration: actionDuration)
             break
         }
-        pathNode.strokeColor = self.color
+        
+        pathNode.strokeColor = UIColor.clearColor()
         pathNode.fillColor = self.color
-        self.addChild(pathNode)
         pathNode.zPosition = -1
-        pathNode.runAction(action, completion: { () -> Void in
-            completion()
+        self.addChild(pathNode)
+
+        let scaleUpAction = SKAction.scaleTo(1.05, duration: 0.05)
+        
+        self.runAction(scaleUpAction, completion: { () -> Void in
+            pathNode.runAction(action, completion: { () -> Void in
+                completion()
+            })
         })
     }
     
+    /**
+     SKAction when bomb is trigger
+     - Parameter completion:   Closure to be executing after action completed
+    */
     func triggerBomb(completion:()->()) {
         let scaleUpAction = SKAction.scaleBy(1.5, duration: 0.2)
         let scaleBackAction = SKAction.scaleTo(1, duration: 0.2)
@@ -180,17 +245,18 @@ class Block:SKSpriteNode {
         }
     }
     
+    /**
+     SKAction after bomb is exploded
+     */
     func sealBackground() {
-        self.runAction(SKAction.scaleTo(0, duration: 0.5))
+        self.runAction(SKAction.scaleTo(0, duration: 0.4))
+        runAction(SKAction.scaleTo(0, duration: 0.5)) { () -> Void in
+            self.texture = TextureStore.sharedInstance.blockTextures[SubType.Black.rawValue]
+            let locker = SKSpriteNode(texture: TextureStore.sharedInstance.lockTexture)
+            locker.zPosition = 4
+            self.addChild(locker)
+            self.runAction(SKAction.scaleTo(1, duration: 0.2))
+        }
     }
-    
-    func decreaseBombCounter() {
-        bombCounter--
-        counterLabel?.text = String(bombCounter)
-    }
-    
-    func updateBombCounter(counter:Int) {
-        bombCounter = counter
-        counterLabel?.text = String(bombCounter)
-    }
+
 }
